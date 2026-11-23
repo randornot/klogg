@@ -2056,7 +2056,6 @@ void MainWindow::updateThemeMenu()
 
     auto& config = Configuration::get();
     themeMenu->clear();
-    themeMenu->setEnabled( StyleManager::isDarkStyle( config.style() ) );
 
     for ( const auto& theme : StyleManager::availableThemes() ) {
         auto* action = themeMenu->addAction( theme );

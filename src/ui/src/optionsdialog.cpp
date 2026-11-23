@@ -87,10 +87,6 @@ OptionsDialog::OptionsDialog( QWidget* parent )
     connect( mainSearchColorButton, &QPushButton::clicked, this, &OptionsDialog::changeMainColor );
     connect( quickFindColorButton, &QPushButton::clicked, this, &OptionsDialog::changeQfColor );
 
-    connect( styleComboBox, &QComboBox::currentTextChanged, this, [ this ]( const QString& style ) {
-        themeComboBox->setEnabled( StyleManager::isDarkStyle( style ) );
-    } );
-
     connect( restoreShortcutsDefaults, &QPushButton::clicked, this, [ this ]() {
         auto ret = QMessageBox::question(
             this, "Restore Default Shortcuts", "Do you want to restore default shortcuts?",
@@ -332,7 +328,6 @@ void OptionsDialog::updateDialogFromConfig()
     else {
         themeComboBox->setCurrentText( theme );
     }
-    themeComboBox->setEnabled( StyleManager::isDarkStyle( style ) );
 
     hideAnsiColorsCheckBox->setChecked( config.hideAnsiColorSequences() );
 
@@ -594,7 +589,7 @@ void OptionsDialog::updateConfigFromDialog()
 
     config.save();
 
-    if ( !styleChanged && themeChanged && StyleManager::isDarkStyle( config.style() ) ) {
+    if ( !styleChanged && themeChanged ) {
         StyleManager::applyStyle( config.style(), config.theme() );
     }
 
