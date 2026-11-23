@@ -2002,7 +2002,9 @@ void MainWindow::updateThemeMenu()
             currentConfig.setTheme( theme );
             currentConfig.save();
             StyleManager::applyStyle( currentConfig.style(), currentConfig.theme() );
-            updateThemeMenu();
+            for ( auto* themeAction : themeMenu->actions() ) {
+                themeAction->setChecked( themeAction->text() == currentConfig.theme() );
+            }
         } );
     }
 }

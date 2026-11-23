@@ -57,7 +57,16 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path package | Out-Null
-          Copy-Item build/output/* package -Recurse -Force
+          $runtime = @('klogg.exe','klogg_portable.exe','klogg.conf','klogg_session.conf','file_write_helper.exe','vc_redist.x64.exe','d3dcompiler_47.dll','dxcompiler.dll','dxil.dll','opengl32sw.dll')
+          foreach ($f in $runtime) {
+            $p = Join-Path 'build/output' $f
+            if (Test-Path $p) { Copy-Item $p package -Force }
+          }
+          Get-ChildItem 'build/output' -Filter '*.dll' | Copy-Item -Destination package -Force
+          foreach ($d in 'platforms','styles','imageformats','iconengines','networkinformation','tls','generic') {
+            $p = Join-Path 'build/output' $d
+            if (Test-Path $p) { Copy-Item $p package -Recurse -Force }
+          }
           & windeployqt.exe --no-translations package/klogg.exe
           Compress-Archive -Path package/* -DestinationPath klogg-windows-x64.zip -Force
 
