@@ -1,0 +1,69 @@
+name: build-windows
+
+on:
+  push:
+    branches: [ '**' ]
+  pull_request:
+    branches: [ '**' ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-2022
+    timeout-minutes: 90
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.7.3'
+          arch: win64_msvc2019_64
+          cache: true
+          modules: qt5compat
+
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Configure
+        shell: pwsh
+        run: >
+          cmake -S . -B build -G Ninja
+          -DCMAKE_BUILD_TYPE=RelWithDebInfo
+          -DKLOGG_USE_HYPERSCAN=OFF
+          -DKLOGG_USE_SENTRY=OFF
+          -DKLOGG_BUILD_TESTS=ON
+          -DKLOGG_USE_LTO=OFF
+          -DCPM_SOURCE_CACHE="$env:GITHUB_WORKSPACE/cpm_cache"
+
+      - name: Build
+        shell: pwsh
+        run: cmake --build build --parallel
+
+      - name: Test
+        shell: pwsh
+        continue-on-error: true
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path package | Out-Null
+          Copy-Item build/output/* package -Recurse -Force
+          & windeployqt.exe --no-translations package/klogg.exe
+          Compress-Archive -Path package/* -DestinationPath klogg-windows-x64.zip -Force
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: klogg-windows-x64
+          path: klogg-windows-x64.zip
+          if-no-files-found: error

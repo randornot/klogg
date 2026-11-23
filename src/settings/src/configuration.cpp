@@ -291,6 +291,12 @@ void Configuration::retrieveFromStorage( QSettings& settings )
         style_ = styles.front();
     }
 
+    theme_ = settings.value( "view.theme", DefaultConfiguration.theme_ ).toString();
+    const auto themes = StyleManager::availableThemes();
+    if ( !themes.contains( theme_ ) ) {
+        theme_ = StyleManager::defaultTheme();
+    }
+
     // DefaultConfiguration crawler settings
     searchAutoRefresh_
         = settings.value( "defaultView.searchAutoRefresh", DefaultConfiguration.searchAutoRefresh_ )
@@ -410,6 +416,7 @@ void Configuration::saveToStorage( QSettings& settings ) const
     settings.setValue( "view.lineNumbersVisibleInFiltered", lineNumbersVisibleInFiltered_ );
     settings.setValue( "view.minimizeToTray", minimizeToTray_ );
     settings.setValue( "view.style", style_ );
+    settings.setValue( "view.theme", theme_ );
     settings.setValue( "view.language", language_ );
     settings.setValue( "view.textWrap", useTextWrap_ );
 

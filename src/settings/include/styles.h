@@ -20,8 +20,11 @@
 #ifndef KLOGG_STYLES
 #define KLOGG_STYLES
 
-#include <QStringList>
+#include <map>
+
 #include <QLatin1String>
+#include <QString>
+#include <QStringList>
 
 struct StyleManager {
 
@@ -35,10 +38,18 @@ struct StyleManager {
     static constexpr QLatin1String Gtk2Key = QLatin1String( "Gtk2", 4 );
     static constexpr QLatin1String Bb10Key = QLatin1String( "bb10", 4 );
 
+    static constexpr QLatin1String DefaultThemeKey = QLatin1String( "klogg Default", 13 );
+
     static QStringList availableStyles();
     static QString defaultPlatformStyle();
 
-    static void applyStyle( const QString& style );
+    // Built-in color themes. These are only used for Dark and Windows Dark styles.
+    static QStringList availableThemes();
+    static QString defaultTheme();
+    static bool isDarkStyle( const QString& style );
+    static std::map<QString, QString> themePalette( const QString& theme );
+
+    static void applyStyle( const QString& style, const QString& theme = QString() );
 };
 
 #endif

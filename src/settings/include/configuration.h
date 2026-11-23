@@ -285,6 +285,16 @@ class Configuration final : public Persistable<Configuration> {
     {
         return style_;
     }
+
+    QString theme() const
+    {
+        return theme_;
+    }
+
+    void setTheme( const QString& theme )
+    {
+        theme_ = theme;
+    }
     void setMainLineNumbersVisible( bool lineNumbersVisible )
     {
         lineNumbersVisibleInMain_ = lineNumbersVisible;
@@ -563,6 +573,7 @@ class Configuration final : public Persistable<Configuration> {
     bool lineNumbersVisibleInFiltered_ = true;
     bool minimizeToTray_ = false;
     QString style_;
+    QString theme_{ "klogg Default" };
 
     // Default settings for new views
     bool searchAutoRefresh_ = false;

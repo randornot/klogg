@@ -208,6 +208,7 @@ class MainWindow : public QMainWindow {
     void updateFavoritesMenu();
     void updateOpenedFilesMenu();
     void updateHighlightersMenu();
+    void updateThemeMenu();
     QString strippedName( const QString& fullFileName ) const;
     CrawlerWidget* currentCrawlerWidget() const;
     void displayQuickFindBar( QuickFindMux::QFDirection direction );
@@ -234,6 +235,8 @@ class MainWindow : public QMainWindow {
     QMenu* favoritesMenu;
     HighlightersMenu* highlightersMenu;
     QMenu* openedFilesMenu;
+    QMenu* themeMenu;
+    QActionGroup* themeActionGroup;
     QMenu* helpMenu;
 
     PathLine* infoLine;

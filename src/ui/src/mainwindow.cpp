@@ -49,6 +49,7 @@
 
 #include <iterator>
 #include <qaction.h>
+#include <qactiongroup.h>
 #include <qapplication.h>
 
 #ifdef Q_OS_WIN
@@ -792,6 +793,13 @@ void MainWindow::createMenus()
     viewMenu->addSeparator();
     viewMenu->addAction( textWrapAction );
     viewMenu->addSeparator();
+    themeMenu = viewMenu->addMenu( tr( "Theme" ) );
+    themeMenu->setToolTipsVisible( true );
+    themeActionGroup = new QActionGroup( this );
+    themeActionGroup->setExclusive( true );
+    connect( themeMenu, &QMenu::aboutToShow, this, &MainWindow::updateThemeMenu );
+    updateThemeMenu();
+    viewMenu->addSeparator();
     viewMenu->addAction( followAction );
     viewMenu->addSeparator();
     viewMenu->addAction( reloadAction );
@@ -1205,6 +1213,7 @@ void MainWindow::options()
 
         updateShortcuts();
         updateRecentFileActions();
+        updateThemeMenu();
     } );
     dialog.exec();
 
@@ -1968,6 +1977,36 @@ void MainWindow::updateHighlightersMenu()
     highlightersMenu->addAction( editHighlightersAction, true );
     highlightersMenu->populateHighlightersMenu();
 }
+
+void MainWindow::updateThemeMenu()
+{
+    if ( themeMenu == nullptr ) {
+        return;
+    }
+
+    auto& config = Configuration::get();
+    themeMenu->clear();
+    themeMenu->setEnabled( StyleManager::isDarkStyle( config.style() ) );
+
+    for ( const auto& theme : StyleManager::availableThemes() ) {
+        auto* action = themeMenu->addAction( theme );
+        action->setCheckable( true );
+        action->setChecked( theme == config.theme() );
+        action->setActionGroup( themeActionGroup );
+        connect( action, &QAction::triggered, this, [ this, theme ]() {
+            auto& currentConfig = Configuration::get();
+            if ( currentConfig.theme() == theme ) {
+                return;
+            }
+
+            currentConfig.setTheme( theme );
+            currentConfig.save();
+            StyleManager::applyStyle( currentConfig.style(), currentConfig.theme() );
+            updateThemeMenu();
+        } );
+    }
+}
+
 
 void MainWindow::updateFavoritesMenu()
 {

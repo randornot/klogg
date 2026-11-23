@@ -87,6 +87,10 @@ OptionsDialog::OptionsDialog( QWidget* parent )
     connect( mainSearchColorButton, &QPushButton::clicked, this, &OptionsDialog::changeMainColor );
     connect( quickFindColorButton, &QPushButton::clicked, this, &OptionsDialog::changeQfColor );
 
+    connect( styleComboBox, &QComboBox::currentTextChanged, this, [ this ]( const QString& style ) {
+        themeComboBox->setEnabled( StyleManager::isDarkStyle( style ) );
+    } );
+
     connect( restoreShortcutsDefaults, &QPushButton::clicked, this, [ this ]() {
         auto ret = QMessageBox::question(
             this, "Restore Default Shortcuts", "Do you want to restore default shortcuts?",
@@ -151,6 +155,7 @@ void OptionsDialog::setupRegexp()
 void OptionsDialog::setupStyles()
 {
     styleComboBox->addItems( StyleManager::availableStyles() );
+    themeComboBox->addItems( StyleManager::availableThemes() );
 }
 
 void OptionsDialog::setupEncodings()
@@ -319,6 +324,15 @@ void OptionsDialog::updateDialogFromConfig()
     else {
         styleComboBox->setCurrentText( style );
     }
+
+    const auto theme = config.theme();
+    if ( !themeComboBox->findText( theme, Qt::MatchExactly ) ) {
+        themeComboBox->setCurrentIndex( 0 );
+    }
+    else {
+        themeComboBox->setCurrentText( theme );
+    }
+    themeComboBox->setEnabled( StyleManager::isDarkStyle( style ) );
 
     hideAnsiColorsCheckBox->setChecked( config.hideAnsiColorSequences() );
 
@@ -545,9 +559,12 @@ void OptionsDialog::updateConfigFromDialog()
 
     config.setVerifySslPeers( verifySslCheckBox->isChecked() );
 
-    restartAppMessage = config.style() != styleComboBox->currentText();
+    const bool styleChanged = config.style() != styleComboBox->currentText();
+    const bool themeChanged = config.theme() != themeComboBox->currentText();
+    restartAppMessage = styleChanged;
 
     config.setStyle( styleComboBox->currentText() );
+    config.setTheme( themeComboBox->currentText() );
     config.setHideAnsiColorSequences( hideAnsiColorsCheckBox->isChecked() );
 
     config.setDefaultEncodingMib( encodingComboBox->currentData().toInt() );
@@ -577,6 +594,10 @@ void OptionsDialog::updateConfigFromDialog()
     retranslateUi( this );
 
     config.save();
+
+    if ( !styleChanged && themeChanged && StyleManager::isDarkStyle( config.style() ) ) {
+        StyleManager::applyStyle( config.style(), config.theme() );
+    }
 
     auto& savedSearches = SavedSearches::get();
     savedSearches.setHistorySize( searchHistorySpinBox->value() );
