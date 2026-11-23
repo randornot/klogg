@@ -48,6 +48,7 @@ class Persistable {
     {
         auto& settings = PersistentInfo::getSettings( SettingsType{} );
         static_cast<const T&>( *this ).saveToStorage( settings );
+        settings.sync();
     }
 
   private:

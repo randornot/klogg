@@ -57,7 +57,7 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path package | Out-Null
-          $runtime = @('klogg.exe','klogg_portable.exe','klogg.conf','klogg_session.conf','file_write_helper.exe','vc_redist.x64.exe','d3dcompiler_47.dll','dxcompiler.dll','dxil.dll','opengl32sw.dll')
+          $runtime = @('klogg.exe','klogg_portable.exe','file_write_helper.exe','vc_redist.x64.exe','d3dcompiler_47.dll','dxcompiler.dll','dxil.dll','opengl32sw.dll')
           foreach ($f in $runtime) {
             $p = Join-Path 'build/output' $f
             if (Test-Path $p) { Copy-Item $p package -Force }
