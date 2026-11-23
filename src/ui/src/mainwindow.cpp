@@ -1267,8 +1267,8 @@ void MainWindow::exportSettings()
 
 void MainWindow::importSettings()
 {
-    const auto sourceFile = QFileDialog::getOpenFileName( this, tr( "Import settings" ), QString(),
-                                                          tr( "Klogg settings (*.conf)" ) );
+    const auto sourceFile = QFileDialog::getOpenFileName(
+        this, tr( "Import settings" ), QString(), tr( "Klogg settings (*.conf *.ini)" ) );
     if ( sourceFile.isEmpty() ) {
         return;
     }
