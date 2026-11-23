@@ -1074,6 +1074,22 @@ void CrawlerWidget::setup()
     searchRefreshButton_->setFocusPolicy( Qt::NoFocus );
     searchRefreshButton_->setContentsMargins( 2, 2, 2, 2 );
 
+    const auto setupSearchToggle = [ this ]( QToolButton* button, const QString& label ) {
+        button->setText( label );
+        button->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
+        button->setAutoRaise( false );
+        button->setStyleSheet( QStringLiteral(
+            "QToolButton { border: 1px solid transparent; border-radius: 3px; padding: 1px 4px; }"
+            "QToolButton:hover { border: 1px solid palette(mid); }"
+            "QToolButton:checked { background-color: palette(highlight); color: "
+            "palette(highlighted-text); border: 1px solid palette(highlight); }" ) );
+    };
+    setupSearchToggle( matchCaseButton_, tr( "Aa" ) );
+    setupSearchToggle( useRegexpButton_, tr( ".*" ) );
+    setupSearchToggle( inverseButton_, tr( "!=" ) );
+    setupSearchToggle( booleanButton_, tr( "AND" ) );
+    setupSearchToggle( searchRefreshButton_, tr( "Auto" ) );
+
     // Construct the Search line
     searchLineCompleter_ = new QCompleter( savedSearches_->recentSearches(), this );
     searchLineEdit_ = new QComboBox;

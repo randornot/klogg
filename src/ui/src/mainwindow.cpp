@@ -60,8 +60,10 @@
 #include <QClipboard>
 #include <QCloseEvent>
 #include <QDialogButtonBox>
+#include <QFile>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QSettings>
 #include <QInputDialog>
 #include <QListView>
 #include <QMenuBar>
@@ -765,7 +767,14 @@ void MainWindow::createMenus()
     fileMenu->addAction( optionsAction );
     fileMenu->addSeparator();
 
+    auto* importSettingsAction = new QAction( tr( "Import settings..." ), this );
+    auto* exportSettingsAction = new QAction( tr( "Export settings..." ), this );
+    connect( importSettingsAction, &QAction::triggered, this, &MainWindow::importSettings );
+    connect( exportSettingsAction, &QAction::triggered, this, &MainWindow::exportSettings );
+    fileMenu->addAction( importSettingsAction );
+    fileMenu->addAction( exportSettingsAction );
     fileMenu->addSeparator();
+
     fileMenu->addAction( exitAction );
 
     editMenu = menuBar()->addMenu( tr( menu::editTitle ) );
@@ -1218,6 +1227,67 @@ void MainWindow::options()
     dialog.exec();
 
     signalMux_.disconnect( &dialog, SIGNAL( optionsChanged() ), SLOT( applyConfiguration() ) );
+}
+
+void MainWindow::exportSettings()
+{
+    auto& settings = PersistentInfo::getSettings( app_settings{} );
+    settings.sync();
+
+    const auto settingsFile = settings.fileName();
+    if ( settingsFile.isEmpty() || !QFile::exists( settingsFile ) ) {
+        QMessageBox::warning( this, tr( "Export settings" ),
+                              tr( "Unable to find the current configuration file." ) );
+        return;
+    }
+
+    auto targetFile = QFileDialog::getSaveFileName( this, tr( "Export settings" ), QString(),
+                                                    tr( "Klogg settings (*.conf)" ) );
+    if ( targetFile.isEmpty() ) {
+        return;
+    }
+
+    if ( !targetFile.endsWith( ".conf", Qt::CaseInsensitive ) ) {
+        targetFile += ".conf";
+    }
+
+    if ( QFile::exists( targetFile ) ) {
+        QFile::remove( targetFile );
+    }
+
+    if ( !QFile::copy( settingsFile, targetFile ) ) {
+        QMessageBox::warning( this, tr( "Export settings" ),
+                              tr( "Failed to write settings to %1" ).arg( targetFile ) );
+        return;
+    }
+
+    QMessageBox::information( this, tr( "Export settings" ),
+                              tr( "Settings exported to %1" ).arg( targetFile ) );
+}
+
+void MainWindow::importSettings()
+{
+    const auto sourceFile = QFileDialog::getOpenFileName( this, tr( "Import settings" ), QString(),
+                                                          tr( "Klogg settings (*.conf)" ) );
+    if ( sourceFile.isEmpty() ) {
+        return;
+    }
+
+    QSettings imported( sourceFile, QSettings::IniFormat );
+    if ( imported.status() != QSettings::NoError || imported.allKeys().isEmpty() ) {
+        QMessageBox::warning( this, tr( "Import settings" ),
+                              tr( "Unable to read settings from %1" ).arg( sourceFile ) );
+        return;
+    }
+
+    auto& settings = PersistentInfo::getSettings( app_settings{} );
+    for ( const auto& key : imported.allKeys() ) {
+        settings.setValue( key, imported.value( key ) );
+    }
+    settings.sync();
+
+    QMessageBox::information( this, tr( "Import settings" ),
+                              tr( "Settings imported. Restart klogg to apply all changes." ) );
 }
 
 void MainWindow::about()
